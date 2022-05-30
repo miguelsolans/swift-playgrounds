@@ -12,6 +12,16 @@ struct Country {
     let countryName: String
     let countryCode: String
     let phoneCode: String
+    
+    func phoneCodeWithoutExitCode() -> String {
+        var countryCode = self.phoneCode
+        
+        if let index = countryCode.firstIndex(of: "+") {
+            countryCode.remove(at: index);
+        }
+        
+        return countryCode;
+    }
 }
 
 
@@ -34,6 +44,9 @@ class ViewController: UIViewController {
     var backgroundView = UIView();
     var viewBackgroundConstraint: NSLayoutConstraint?;
     
+    let callButton = UIButton()
+    
+    let okButton = UIButton();
     
     
     override func viewDidLoad() {
@@ -48,7 +61,7 @@ class ViewController: UIViewController {
         self.phoneNumberTextField.placeholder = "Phone Number";
         self.phoneNumberTextField.delegate = self;
         self.phoneNumberTextField.translatesAutoresizingMaskIntoConstraints = false;
-        self.phoneNumberTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 20));
+        self.phoneNumberTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: 20));
         self.phoneNumberTextField.leftViewMode = .always;
         self.phoneNumberTextField.keyboardType = .numberPad;
         
@@ -60,7 +73,6 @@ class ViewController: UIViewController {
         self.countryTextField.placeholder = "+00"
         self.countryTextField.translatesAutoresizingMaskIntoConstraints = false;
         
-        self.countryTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 20));
         self.countryTextField.leftViewMode = .always;
         self.countryTextField.keyboardType = .phonePad;
         
@@ -68,13 +80,19 @@ class ViewController: UIViewController {
         self.tableView.delegate = self;
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CountryCell")
         
+        self.callButton.setTitle("Call", for: .normal)
+        self.callButton.translatesAutoresizingMaskIntoConstraints = false;
+        
+        self.okButton.setTitle("OK", for: .normal)
+        self.okButton.translatesAutoresizingMaskIntoConstraints = false;
         
         self.view.addSubview(self.countryPickerView);
         self.view.addSubview(self.phoneNumberTextField);
         self.view.addSubview(self.countryTextField);
         self.countryPickerView.addSubview(self.tableView);
+        self.countryPickerView.addSubview(self.okButton);
         self.view.addSubview(self.backgroundView);
-        
+        self.view.addSubview(self.callButton)
         
         self.view.bringSubviewToFront(self.countryPickerView);
         self.view.bringSubviewToFront(self.tableView);
@@ -88,6 +106,8 @@ class ViewController: UIViewController {
         self.countryPickerView.backgroundColor = .white;
         self.countryPickerView.layer.cornerRadius = 20;
         self.countryPickerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner];
+        self.countryTextField.contentVerticalAlignment = .center;
+        self.countryTextField.textAlignment = .center;
         
         self.countryPickerView.translatesAutoresizingMaskIntoConstraints = false;
         self.countryPickerViewHeightConstraint = NSLayoutConstraint(item: self.countryPickerView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .height, multiplier: 1, constant: 0);
@@ -99,6 +119,11 @@ class ViewController: UIViewController {
         self.tableView.translatesAutoresizingMaskIntoConstraints = false;
         self.tableView.backgroundColor = .clear;
         
+        self.callButton.backgroundColor = .systemIndigo
+        self.callButton.layer.masksToBounds = true;
+        self.callButton.layer.cornerRadius = 15;
+        
+        self.okButton.setTitleColor(.systemIndigo, for: .normal)
         NSLayoutConstraint.activate([
             self.countryTextField.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 20),
             self.countryTextField.widthAnchor.constraint(equalToConstant: 60),
@@ -124,6 +149,16 @@ class ViewController: UIViewController {
             self.tableView.leftAnchor.constraint(equalTo: self.countryPickerView.leftAnchor),
             self.tableView.rightAnchor.constraint(equalTo: self.countryPickerView.rightAnchor),
             self.tableView.bottomAnchor.constraint(equalTo: self.countryPickerView.bottomAnchor),
+            
+            self.callButton.topAnchor.constraint(equalTo: self.phoneNumberTextField.bottomAnchor, constant: 40),
+            self.callButton.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor, constant: 20),
+            self.callButton.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor, constant: -20),
+            self.callButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            self.okButton.rightAnchor.constraint(equalTo: self.countryPickerView.rightAnchor, constant: -20),
+            self.okButton.topAnchor.constraint(equalTo: self.countryPickerView.topAnchor),
+            self.okButton.widthAnchor.constraint(equalToConstant: 60),
+            self.okButton.heightAnchor.constraint(equalToConstant: 60)
         ]);
     }
     
@@ -198,7 +233,7 @@ extension ViewController : UITextFieldDelegate {
         if(textField.isEqual(self.countryTextField)) {
             var found = false;
             for country in self.countryList {
-                if(country.phoneCode == textField.text) {
+                if(country.phoneCode == textField.text || country.phoneCodeWithoutExitCode() == textField.text) {
                     found = true;
                     break;
                 }
